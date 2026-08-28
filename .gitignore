@@ -1,0 +1,22 @@
+# ── 데이터 (용량·라이선스) ─────────────────────────────
+data/
+artifacts/*.pkl
+artifacts/*.pt
+artifacts/results*.json
+
+# AI Hub 원본 압축·해제본
+*.zip
+**/01.원천데이터/
+**/gps_data/
+**/photo/
+
+# ── 파이썬 ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# ── 기타 ──────────────────────────────────────────────
+.DS_Store
+*.log
