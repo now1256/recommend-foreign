@@ -1,0 +1,47 @@
+{
+  "data": {
+    "raw_tourism_visits": 33895,
+    "users": 4130,
+    "items": 342,
+    "interactions_before_holdout": 8027,
+    "train_interactions": 5933,
+    "test_interactions": 2094,
+    "eval_users": 2094,
+    "min_visitors": 10,
+    "excluded_regions": [
+      "서울",
+      "경기",
+      "인천"
+    ]
+  },
+  "split": "leave-one-out per user with >=2 eligible POIs; seed=0",
+  "ease": {
+    "lambda": 500.0,
+    "fit_sec": 0.005,
+    "HR@1": 0.213,
+    "HR@5": 0.5396,
+    "HR@10": 0.6762,
+    "HR@20": 0.7708
+  },
+  "popularity": {
+    "HR@1": 0.0291,
+    "HR@5": 0.0998,
+    "HR@10": 0.1552,
+    "HR@20": 0.2483
+  },
+  "within_true_sido": {
+    "description": "모델 1이 정답 시도를 선택했다고 가정하고 같은 시도 POI만 후보로 평가",
+    "ease": {
+      "HR@1": 0.223,
+      "HR@5": 0.5697,
+      "HR@10": 0.7163,
+      "HR@20": 0.8524
+    },
+    "popularity": {
+      "HR@1": 0.159,
+      "HR@5": 0.4207,
+      "HR@10": 0.575,
+      "HR@20": 0.7445
+    }
+  }
+}

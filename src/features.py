@@ -15,7 +15,21 @@ def item_matrix(sggs, standardize=True) -> pd.DataFrame:
     try: card = D.card_profiles("gu")
     except Exception: card = pd.DataFrame()
     parts = [ai] + [x for x in (card, D.entrance_stats(), D.resource_stats()) if len(x)]
-    M = pd.concat([p.reindex(sggs) for p in parts], axis=1).fillna(0)
+
+    def align_level(p):
+        """시군구 요청은 그대로, 시도 요청은 해당 시군구의 평균 피처로 정렬."""
+        rows = []
+        for name in sggs:
+            if name in p.index:
+                rows.append(p.loc[name])
+            elif " " not in name:
+                mask = p.index.to_series().astype(str).str.split().str[0].eq(name).values
+                rows.append(p.loc[mask].mean() if mask.any() else pd.Series(0.0, index=p.columns))
+            else:
+                rows.append(pd.Series(0.0, index=p.columns))
+        return pd.DataFrame(rows, index=sggs, columns=p.columns)
+
+    M = pd.concat([align_level(p) for p in parts], axis=1).fillna(0)
     M = M.loc[:, M.std() > 1e-9]
     if standardize: M = ((M - M.mean()) / (M.std() + 1e-9)).fillna(0)
     return M
@@ -26,7 +40,12 @@ KR_NUM = [f"TRAVEL_STYL_{i}" for i in range(2, 9)] + ["companions"]
 
 def korean_table():
     """반환: 여행객×시군구 롱포맷 + 방문라벨 + 만족도라벨"""
-    V, M = D.aihub_visits(), D.aihub_master()
+    V, M = D.aihub_visits().copy(), D.aihub_master().copy()
+    # 권역별 원본 CSV에서 ID가 숫자/문자열로 혼재하므로 통합 전에 문자열로 고정한다.
+    V = V.dropna(subset=["TRAVELER_ID"])
+    V["TRAVELER_ID"] = V["TRAVELER_ID"].astype(str)
+    M = M.dropna(subset=["TRAVELER_ID"])
+    M["TRAVELER_ID"] = M["TRAVELER_ID"].astype(str)
     users = sorted(V.TRAVELER_ID.unique()); sggs = sorted(V.sgg.unique())
     ui = {u: i for i, u in enumerate(users)}; gi = {g: i for i, g in enumerate(sggs)}
     Y = np.zeros((len(users), len(sggs)), "float32")

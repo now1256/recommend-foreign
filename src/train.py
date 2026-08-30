@@ -48,7 +48,8 @@ def pretrain(epochs=C.HP.epochs_pre, verbose=True):
     cov = E.coverage(sc[te], sggs, k=1)
     torch.save({"state": model.state_dict(), "sggs": sggs,
                 "kr_cat": [int(UC[:, i].max())+1 for i in range(UC.shape[1])],
-                "kr_num": UN.shape[1], "n_item": IM.shape[1]}, C.CACHE / "pretrained.pt")
+                "kr_num": UN.shape[1], "n_item": IM.shape[1],
+                "item_cols": list(F.item_matrix(sggs).columns)}, C.CACHE / "pretrained.pt")
     return {"stage": "pretrain", "sec": round(dt, 1), "model": res, "popularity": pop, "coverage": cov,
             "n_users": nU, "n_items": nG, "positives": int(Y.sum())}
 
@@ -59,10 +60,9 @@ def finetune(use_pretrained=True, unfreeze_trunk=True, epochs=C.HP.epochs_ft, ve
     regs, FC, FN, Y, ACC, W = F.foreign_table()
     IM_sido = F.item_matrix(regs, standardize=True)       # 시도 이름으로 아이템 피처 (근사)
     ck = torch.load(C.CACHE / "pretrained.pt", map_location=C.DEVICE, weights_only=False)
-    n_item = ck["n_item"]
-    IM = np.zeros((len(regs), n_item), "float32")
-    common = [c for c in IM_sido.columns][:n_item]
-    IM[:, :len(common)] = IM_sido[common].values.astype("float32")
+    item_cols = ck.get("item_cols", list(IM_sido.columns))
+    n_item = len(item_cols)
+    IM = IM_sido.reindex(columns=item_cols, fill_value=0).values.astype("float32")
 
     model = M.TransferRec(ck["kr_cat"], ck["kr_num"], [21, 6, 2, 2, 5], FN.shape[1], n_item).to(C.DEVICE)
     if use_pretrained:
